@@ -1,4 +1,4 @@
-package com.customlistview;
+package com.custom.sample;
 
 import android.content.Context;
 import android.graphics.Color;

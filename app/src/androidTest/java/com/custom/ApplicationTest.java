@@ -1,4 +1,4 @@
-package com.customlistview;
+package com.custom;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

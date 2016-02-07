@@ -1,4 +1,4 @@
-package com.customlistview;
+package com.custom.viewgroup;
 
 import android.view.View;
 

@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.customlistview.CircularListViewGroup
+    <com.custom.viewgroup.CircularListViewGroup
         android:id="@+id/viewGroup"
         android:layout_width="match_parent"
         android:layout_height="40dp" />

@@ -1,4 +1,4 @@
-package com.customlistview;
+package com.custom;
 
 import org.junit.Test;
 
