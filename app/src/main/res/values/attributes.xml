@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CircularListViewGroup">
+        <attr name="radius" format="integer" />
+        <attr name="view_offset" format="dimension" />
+        <attr name="view_orientation" format="enum" >
+            <enum name="horizonal" value="1"/>
+            <enum name="vertical" value="0"/>
+        </attr>
+        <attr name="view_margin" format="dimension" />
+    </declare-styleable>
+</resources>

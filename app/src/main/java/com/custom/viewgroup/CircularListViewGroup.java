@@ -1,7 +1,12 @@
 package com.custom.viewgroup;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -30,8 +35,9 @@ public class CircularListViewGroup extends AdapterView {
     private boolean isFlingOver = true;
     private Context context;
     private float lastX = 0, lastY = 0, flingStartX = 0, flingStartY = 0, viewGestureOffset = 1 / 10;
-    private int leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10;
+    private int leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius=10;
 
+    // TODO: 15/2/16 radius value set
 
     private Handler flingHandler = new Handler(new Handler.Callback() {
         @Override
@@ -48,8 +54,8 @@ public class CircularListViewGroup extends AdapterView {
                         if (child.getLeft() > (viewGestureOffset * rightBoundary)) {
                             isFlingOver = true;
                             break;
-                        }else if((getChildAt(getChildCount() - 1).getLeft() + distance
-                                + getChildAt(getChildCount() - 1).getWidth()) < ((1 - viewGestureOffset) * rightBoundary)){
+                        } else if ((getChildAt(getChildCount() - 1).getLeft() + distance
+                                + getChildAt(getChildCount() - 1).getWidth()) < ((1 - viewGestureOffset) * rightBoundary)) {
                             isFlingOver = true;
                             break;
                         }
@@ -184,6 +190,7 @@ public class CircularListViewGroup extends AdapterView {
             bottomBoundary = bottom - offset;
 
             for (int i = 0; i < adapter.getCount(); i++) {
+
                 View view = adapter.getView(i, null, this);
                 addAndMeasureChild(view, i);
             }
@@ -242,11 +249,24 @@ public class CircularListViewGroup extends AdapterView {
             params = new LayoutParams(LayoutParams.WRAP_CONTENT,
                     LayoutParams.WRAP_CONTENT);
         }
-        addViewInLayout(child, index, params, true);
+
+
         int childWidth = Math.round(params.width); //getWidth()*
         int childHeight = Math.round(params.height); //getHeight()*
+
         child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
+
+        View view;
+        if(radius!=0) {
+            view = new CircularView(context, child, radius);
+        }else{
+            view = new CircularView(context, child,  radius);
+        }
+
+        addViewInLayout(view, index, params, true);
+
+
     }
 
 
@@ -405,15 +425,34 @@ public class CircularListViewGroup extends AdapterView {
 
     private class CircularView extends View {
 
-        private View view;
+        private View view = null;
+        private RectF rect;
+        private int radius;
+        private Paint paint;
 
-        public CircularView(Context context, View view) {
+        public CircularView(Context context, View view, int radius) {
             super(context);
+
+            this.view = view;
+            this.radius = radius;
+
+
+            rect = new RectF(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+            view.setDrawingCacheEnabled(true);
+            Bitmap image = view.getDrawingCache();
+            view.setDrawingCacheEnabled(false);
+            view.destroyDrawingCache();
+
+            BitmapShader shader = new BitmapShader(image, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            paint.setShader(shader);
+
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
+            canvas.drawRoundRect(rect, radius, radius, paint);
         }
     }
 
