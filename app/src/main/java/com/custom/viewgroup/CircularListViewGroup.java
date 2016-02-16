@@ -35,7 +35,7 @@ public class CircularListViewGroup extends AdapterView {
     private boolean isFlingOver = true;
     private Context context;
     private float lastX = 0, lastY = 0, flingStartX = 0, flingStartY = 0, viewGestureOffset = 1 / 10;
-    private int leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius=10;
+    private int leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius=20;
 
     // TODO: 15/2/16 radius value set
 
@@ -250,22 +250,18 @@ public class CircularListViewGroup extends AdapterView {
                     LayoutParams.WRAP_CONTENT);
         }
 
+        int childWidth = Math.round(params.width);
+        int childHeight = Math.round(params.height);
 
-        int childWidth = Math.round(params.width); //getWidth()*
-        int childHeight = Math.round(params.height); //getHeight()*
-
-        child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
-
-        View view;
+        View view = child;
         if(radius!=0) {
-            view = new CircularView(context, child, radius);
-        }else{
-            view = new CircularView(context, child,  radius);
+            view = new CircularView(context, child, radius, childWidth, childHeight);
         }
 
         addViewInLayout(view, index, params, true);
 
+        view.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
 
     }
 
@@ -425,28 +421,24 @@ public class CircularListViewGroup extends AdapterView {
 
     private class CircularView extends View {
 
-        private View view = null;
         private RectF rect;
         private int radius;
         private Paint paint;
 
-        public CircularView(Context context, View view, int radius) {
+        public CircularView(Context context, View view, int radius, int width, int height) {
             super(context);
 
-            this.view = view;
             this.radius = radius;
 
-
-            rect = new RectF(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+            rect = new RectF(0, 0, width, height);
             view.setDrawingCacheEnabled(true);
+            view.buildDrawingCache();
             Bitmap image = view.getDrawingCache();
             view.setDrawingCacheEnabled(false);
-            view.destroyDrawingCache();
 
-            BitmapShader shader = new BitmapShader(image, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            BitmapShader shader = new BitmapShader(image, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
             paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             paint.setShader(shader);
-
         }
 
         @Override
