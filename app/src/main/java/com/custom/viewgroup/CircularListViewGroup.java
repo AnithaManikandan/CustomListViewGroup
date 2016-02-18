@@ -1,6 +1,7 @@
 package com.custom.viewgroup;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
@@ -19,6 +20,8 @@ import android.view.ViewConfiguration;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 
+import com.custom.R;
+
 /**
  * Created by anitham on 29/1/16.
  */
@@ -35,9 +38,7 @@ public class CircularListViewGroup extends AdapterView {
     private boolean isFlingOver = true;
     private Context context;
     private float lastX = 0, lastY = 0, flingStartX = 0, flingStartY = 0, viewGestureOffset = 1 / 10;
-    private int leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius=20;
-
-    // TODO: 15/2/16 radius value set
+    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius=0;
 
     private Handler flingHandler = new Handler(new Handler.Callback() {
         @Override
@@ -142,6 +143,30 @@ public class CircularListViewGroup extends AdapterView {
     public CircularListViewGroup(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
+
+        if(attrs!=null){
+            final TypedArray attributes = context.obtainStyledAttributes(attrs,
+                    R.styleable.CircularListViewGroup, defStyleAttr, 0);
+
+            radius = attributes.getInt(R.styleable.CircularListViewGroup_radius, 0);
+            orientation = attributes.getInt(R.styleable.CircularListViewGroup_view_orientation, 0);
+            offset = attributes.getInt(R.styleable.CircularListViewGroup_view_offset, 0);
+
+            // TODO: 18/2/16 margin  
+            
+            attributes.recycle();
+
+            int[] attb = new int [] {android.R.attr.layout_height, android.R.attr.layout_height};
+
+            TypedArray arr = context.obtainStyledAttributes(attrs, attb);
+
+            viewGroupHeight = arr.getIndex(0);
+            viewGroupWidth = arr.getIndex(1);
+            Log.d(TAG, "height = "+ viewGroupHeight +" width "+ viewGroupWidth);
+            // 0 wrap_content & 2 match parent
+
+        }
+
     }
 
     public void setOrientation(int orientation) {
@@ -180,8 +205,6 @@ public class CircularListViewGroup extends AdapterView {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 
-        // TODO: 01-02-2016 Handle wrap content for height / width
-
         if (getChildCount() == 0) {
 
             leftBoundary = left + offset;
@@ -194,6 +217,12 @@ public class CircularListViewGroup extends AdapterView {
                 View view = adapter.getView(i, null, this);
                 addAndMeasureChild(view, i);
             }
+        }
+
+        if(orientation==VERTICAL_ORIENTATION && viewGroupWidth==0){
+            setRight(viewWidth + 2 * offset);
+        }else if(orientation==HORIZONTAL_ORIENTATION && viewGroupHeight==0){
+            setBottom(viewHeight + 2 * offset);
         }
 
         for (int i = 0; i < adapter.getCount(); i++) {
@@ -212,31 +241,30 @@ public class CircularListViewGroup extends AdapterView {
                 b = t + view.getMeasuredHeight();
                 r = l + view.getMeasuredWidth();
             }
-
-            Log.d(TAG, "onlayout l=" + l + " t=" + t + " b=" + b + " r=" + r);
+            
             view.layout(l, t, r, b);
 
 
-            view.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    setSelection(position);
-                    if (onItemInteractionListener != null && !longPress[0]) {
-                        onItemInteractionListener.onItemClick(position, view);
-                    }
-                }
-            });
-            view.setOnLongClickListener(new OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-
-                    if (onItemInteractionListener != null) {
-                        longPress[0] = true;
-                        onItemInteractionListener.onItemLongPress(position, view);
-                    }
-                    return false;
-                }
-            });
+//            view.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    setSelection(position);
+//                    if (onItemInteractionListener != null && !longPress[0]) {
+//                        onItemInteractionListener.onItemClick(position, view);
+//                    }
+//                }
+//            });
+//            view.setOnLongClickListener(new OnLongClickListener() {
+//                @Override
+//                public boolean onLongClick(View view) {
+//
+//                    if (onItemInteractionListener != null) {
+//                        longPress[0] = true;
+//                        onItemInteractionListener.onItemLongPress(position, view);
+//                    }
+//                    return false;
+//                }
+//            });
 
         }
 
@@ -253,6 +281,12 @@ public class CircularListViewGroup extends AdapterView {
         int childWidth = Math.round(params.width);
         int childHeight = Math.round(params.height);
 
+        if(orientation == HORIZONTAL_ORIENTATION) {
+            viewHeight = Math.max(viewHeight, childHeight);
+        }else{
+            viewWidth = Math.max(viewWidth, childWidth);
+        }
+
         View view = child;
         if(radius!=0) {
             view = new CircularView(context, child, radius, childWidth, childHeight);
@@ -264,6 +298,7 @@ public class CircularListViewGroup extends AdapterView {
                 MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
 
     }
+
 
 
     @Override
@@ -432,7 +467,7 @@ public class CircularListViewGroup extends AdapterView {
 
             rect = new RectF(0, 0, width, height);
             view.setDrawingCacheEnabled(true);
-            view.buildDrawingCache();
+            view.buildDrawingCache(true);
             Bitmap image = view.getDrawingCache();
             view.setDrawingCacheEnabled(false);
 

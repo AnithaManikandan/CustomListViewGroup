@@ -2,6 +2,7 @@ package com.custom.sample;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,12 +39,15 @@ public class SampleAdapter extends BaseAdapter {
     public View getView(int i, View view, ViewGroup viewGroup) {
         TextView textView = new TextView(context);
         //     textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        textView.setLayoutParams(new ViewGroup.LayoutParams(50, 50));
+        int size = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, context.getResources().getDisplayMetrics());
+        textView.setLayoutParams(new ViewGroup.LayoutParams(size, size));
         textView.setBackgroundColor(Color.BLUE);
         textView.setTextColor(Color.WHITE);
         textView.setGravity(Gravity.CENTER);
         textView.setText(Character.toString((char)(i+65)));
         return textView;
     }
+
+
 
 }
