@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.os.Handler;
@@ -34,11 +35,12 @@ public class CircularListViewGroup extends AdapterView {
     private int orientation = HORIZONTAL_ORIENTATION, flingDirection = 1; // -1 is bottom-top / right-left
     private OnItemInteractionListener onItemInteractionListener;
     private View selectedView = null;
+    private int selectedViewIndex = -1;
     private VelocityTracker velocityTracker;
     private boolean isFlingOver = true;
     private Context context;
-    private float lastX = 0, lastY = 0, flingStartX = 0, flingStartY = 0, viewGestureOffset = 1 / 10;
-    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius=0;
+    private float lastX = 0, lastY = 0, lastTouchX = 0, lastTouchY = 0, viewGestureOffset = 1 / 10;
+    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius = 0;
 
     private Handler flingHandler = new Handler(new Handler.Callback() {
         @Override
@@ -144,25 +146,25 @@ public class CircularListViewGroup extends AdapterView {
         super(context, attrs, defStyleAttr);
         this.context = context;
 
-        if(attrs!=null){
+        if (attrs != null) {
             final TypedArray attributes = context.obtainStyledAttributes(attrs,
                     R.styleable.CircularListViewGroup, defStyleAttr, 0);
 
-            radius = attributes.getInt(R.styleable.CircularListViewGroup_radius, 0);
+            radius = (int) attributes.getDimension(R.styleable.CircularListViewGroup_radius, 0);
             orientation = attributes.getInt(R.styleable.CircularListViewGroup_view_orientation, 0);
-            offset = attributes.getInt(R.styleable.CircularListViewGroup_view_offset, 0);
+            offset = (int) attributes.getDimension(R.styleable.CircularListViewGroup_view_offset, 0f);
 
             // TODO: 18/2/16 margin  
-            
+
             attributes.recycle();
 
-            int[] attb = new int [] {android.R.attr.layout_height, android.R.attr.layout_height};
+            int[] attb = new int[]{android.R.attr.layout_height, android.R.attr.layout_height};
 
             TypedArray arr = context.obtainStyledAttributes(attrs, attb);
 
             viewGroupHeight = arr.getIndex(0);
             viewGroupWidth = arr.getIndex(1);
-            Log.d(TAG, "height = "+ viewGroupHeight +" width "+ viewGroupWidth);
+            Log.d(TAG, "height = " + viewGroupHeight + " width " + viewGroupWidth);
             // 0 wrap_content & 2 match parent
 
         }
@@ -219,9 +221,9 @@ public class CircularListViewGroup extends AdapterView {
             }
         }
 
-        if(orientation==VERTICAL_ORIENTATION && viewGroupWidth==0){
+        if (orientation == VERTICAL_ORIENTATION && viewGroupWidth == 0) {
             setRight(viewWidth + 2 * offset);
-        }else if(orientation==HORIZONTAL_ORIENTATION && viewGroupHeight==0){
+        } else if (orientation == HORIZONTAL_ORIENTATION && viewGroupHeight == 0) {
             setBottom(viewHeight + 2 * offset);
         }
 
@@ -241,34 +243,8 @@ public class CircularListViewGroup extends AdapterView {
                 b = t + view.getMeasuredHeight();
                 r = l + view.getMeasuredWidth();
             }
-            
             view.layout(l, t, r, b);
-
-
-//            view.setOnClickListener(new OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    setSelection(position);
-//                    if (onItemInteractionListener != null && !longPress[0]) {
-//                        onItemInteractionListener.onItemClick(position, view);
-//                    }
-//                }
-//            });
-//            view.setOnLongClickListener(new OnLongClickListener() {
-//                @Override
-//                public boolean onLongClick(View view) {
-//
-//                    if (onItemInteractionListener != null) {
-//                        longPress[0] = true;
-//                        onItemInteractionListener.onItemLongPress(position, view);
-//                    }
-//                    return false;
-//                }
-//            });
-
         }
-
-
     }
 
     private void addAndMeasureChild(View child, int index) {
@@ -281,14 +257,14 @@ public class CircularListViewGroup extends AdapterView {
         int childWidth = Math.round(params.width);
         int childHeight = Math.round(params.height);
 
-        if(orientation == HORIZONTAL_ORIENTATION) {
+        if (orientation == HORIZONTAL_ORIENTATION) {
             viewHeight = Math.max(viewHeight, childHeight);
-        }else{
+        } else {
             viewWidth = Math.max(viewWidth, childWidth);
         }
 
         View view = child;
-        if(radius!=0) {
+        if (radius != 0) {
             view = new CircularView(context, child, radius, childWidth, childHeight);
         }
 
@@ -298,7 +274,6 @@ public class CircularListViewGroup extends AdapterView {
                 MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
 
     }
-
 
 
     @Override
@@ -317,11 +292,8 @@ public class CircularListViewGroup extends AdapterView {
                     isFlingOver = true;
                 }
 
-                lastX = event.getRawX();
-                lastY = event.getRawY();
-
-                flingStartX = event.getRawX();
-                flingStartY = event.getRawY();
+                lastX = lastTouchX = event.getRawX();
+                lastY = lastTouchY = event.getRawY();
 
                 break;
 
@@ -358,6 +330,14 @@ public class CircularListViewGroup extends AdapterView {
 
             case MotionEvent.ACTION_UP:
 
+                if ((lastTouchX - event.getRawX() == 0) && (lastTouchY - event.getRawY() == 0)) {
+                    setCurrentViewBasedOnClick((int) lastTouchX, (int) lastTouchY);
+                    if (selectedView != null) {
+                        onItemInteractionListener.onItemClick(selectedViewIndex, selectedView);
+                    }
+                }
+
+
                 velocityTracker.computeCurrentVelocity(1000, ViewConfiguration.get(context).getScaledMaximumFlingVelocity());
                 float velocityInX = velocityTracker.getXVelocity();
                 float velocityInY = velocityTracker.getYVelocity();
@@ -392,6 +372,50 @@ public class CircularListViewGroup extends AdapterView {
         return true;
     }
 
+    private void setCurrentViewBasedOnClick(int x, int y) {
+        Rect scrollBounds = new Rect();
+        getHitRect(scrollBounds);
+
+        boolean isVisible = false, isViewSelected = false;
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+            if (view.getLocalVisibleRect(scrollBounds)) {
+                isVisible = true;
+                int location[] = new int[2];
+                view.getLocationOnScreen(location);
+                int viewX = location[0];
+                int viewY = location[1];
+                if (orientation == HORIZONTAL_ORIENTATION) {
+                    if ((x > viewX && x < (viewX + view.getWidth()))) {
+                        selectedViewIndex = i;
+                        selectedView = view;
+                        isViewSelected = true;
+                        break;
+                    }
+                } else {
+                    if ((y > viewY && y < (viewY + view.getWidth()))) {
+                        selectedViewIndex = i;
+                        selectedView = view;
+                        isViewSelected = true;
+                        break;
+                    }
+                }
+            } else {
+                if (isVisible) {
+                    break; // the visible sequence is over. following views will be off the screen.
+                }
+            }
+        }
+        if (!isViewSelected) {
+            selectedViewIndex = -1;
+            selectedView = null;
+        }
+    }
+
+
+    public interface OnItemInteractionListener {
+        public void onItemClick(int position, View view);
+    }
 
     class FlingThread implements Runnable {
 

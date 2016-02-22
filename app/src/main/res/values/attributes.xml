@@ -4,7 +4,7 @@
         <attr name="radius" format="integer" />
         <attr name="view_offset" format="dimension" />
         <attr name="view_orientation" format="enum" >
-            <enum name="horizonal" value="1"/>
+            <enum name="horizontal" value="1"/>
             <enum name="vertical" value="0"/>
         </attr>
         <attr name="view_margin" format="dimension" />
