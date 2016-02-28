@@ -19,8 +19,6 @@ public class MainActivity extends Activity{
         setContentView(R.layout.view_layout);
 
         CircularListViewGroup circularViewGroup= (CircularListViewGroup) findViewById(R.id.viewGroup);
-        circularViewGroup.setBackgroundColor(Color.RED);
-        circularViewGroup.setOrientation(CircularListViewGroup.HORIZONTAL_ORIENTATION);
         SampleAdapter sampleAdapter = new SampleAdapter(this);
         circularViewGroup.setAdapter(sampleAdapter);
         circularViewGroup.setOnItemInteractionListener(new CircularListViewGroup.OnItemInteractionListener() {
@@ -31,6 +29,5 @@ public class MainActivity extends Activity{
             }
 
         });
-
     }
 }

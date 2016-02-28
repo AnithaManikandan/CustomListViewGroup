@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="CircularListViewGroup">
-        <attr name="radius" format="dimension" />
+        <attr name="child_corner_radius" format="dimension" />
         <attr name="child_offset" format="dimension" />
-        <attr name="view_orientation" format="enum" >
-            <enum name="horizontal" value="1"/>
-            <enum name="vertical" value="0"/>
+        <attr name="child_width" format="dimension" />
+        <attr name="child_height" format="dimension" />
+        <attr name="child_animation" format="reference" />
+        <attr name="make_rounded_children" format="boolean" />
+        <attr name="view_orientation" format="enum">
+            <enum name="horizontal" value="1" />
+            <enum name="vertical" value="2" />
         </attr>
     </declare-styleable>
 </resources>

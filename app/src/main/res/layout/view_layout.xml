@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <com.custom.viewgroup.CircularListViewGroup
         android:id="@+id/viewGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"  app:child_offset="5dp" app:radius="20dp" />
+        android:layout_height="wrap_content"
+        android:background="#b9f6ca"
+        app:child_corner_radius="20dp"
+        app:child_height="100dp"
+        app:child_offset="5dp"
+        app:child_width="100dp"
+        app:child_animation="@anim/animation"
+        app:make_rounded_children="true"
+        app:view_orientation="horizontal" />
 </LinearLayout>
