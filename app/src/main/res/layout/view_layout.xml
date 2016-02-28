@@ -8,5 +8,5 @@
     <com.custom.viewgroup.CircularListViewGroup
         android:id="@+id/viewGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"  app:view_offset="5dp"  />
+        android:layout_height="wrap_content"  app:child_offset="5dp" app:radius="20dp" />
 </LinearLayout>

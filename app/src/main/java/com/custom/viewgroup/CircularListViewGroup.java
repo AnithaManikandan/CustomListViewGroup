@@ -3,23 +3,35 @@ package com.custom.viewgroup;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.PaintDrawable;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.custom.R;
 
@@ -30,9 +42,10 @@ public class CircularListViewGroup extends AdapterView {
 
     public static final int VERTICAL_ORIENTATION = 0;
     public static final int HORIZONTAL_ORIENTATION = 1;
+    public static final int UNDEFINED = -1;
     private String TAG = "CircularViewGroup";
     private Adapter adapter;
-    private int orientation = HORIZONTAL_ORIENTATION, flingDirection = 1; // -1 is bottom-top / right-left
+    private int childAnimation = UNDEFINED, orientation = HORIZONTAL_ORIENTATION, flingDirection = 1; // -1 is bottom-top / right-left
     private OnItemInteractionListener onItemInteractionListener;
     private View selectedView = null;
     private int selectedViewIndex = -1;
@@ -40,7 +53,7 @@ public class CircularListViewGroup extends AdapterView {
     private boolean isFlingOver = true;
     private Context context;
     private float lastX = 0, lastY = 0, lastTouchX = 0, lastTouchY = 0, viewGestureOffset = 1 / 10;
-    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, leftBoundary, rightBoundary, topBoundary, bottomBoundary, offset = 10, radius = 0;
+    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, leftBoundary, rightBoundary, topBoundary, bottomBoundary, radius = 0, offset = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, getResources().getDisplayMetrics());
 
     private Handler flingHandler = new Handler(new Handler.Callback() {
         @Override
@@ -150,11 +163,9 @@ public class CircularListViewGroup extends AdapterView {
             final TypedArray attributes = context.obtainStyledAttributes(attrs,
                     R.styleable.CircularListViewGroup, defStyleAttr, 0);
 
-            radius = (int) attributes.getDimension(R.styleable.CircularListViewGroup_radius, 0);
-            orientation = attributes.getInt(R.styleable.CircularListViewGroup_view_orientation, 0);
-            offset = (int) attributes.getDimension(R.styleable.CircularListViewGroup_view_offset, 0f);
-
-            // TODO: 18/2/16 margin  
+            radius = ((int) attributes.getDimension(R.styleable.CircularListViewGroup_radius, UNDEFINED) == UNDEFINED) ? radius : (int) attributes.getDimension(R.styleable.CircularListViewGroup_radius, UNDEFINED);
+            orientation = attributes.getInt(R.styleable.CircularListViewGroup_view_orientation, HORIZONTAL_ORIENTATION);
+            offset = ((int) attributes.getDimension(R.styleable.CircularListViewGroup_child_offset, UNDEFINED) == UNDEFINED) ? offset : (int) attributes.getDimension(R.styleable.CircularListViewGroup_child_offset, UNDEFINED);
 
             attributes.recycle();
 
@@ -208,17 +219,18 @@ public class CircularListViewGroup extends AdapterView {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 
         if (getChildCount() == 0) {
-
             leftBoundary = left + offset;
             topBoundary = top + offset;
             rightBoundary = right - offset;
             bottomBoundary = bottom - offset;
 
             for (int i = 0; i < adapter.getCount(); i++) {
-
                 View view = adapter.getView(i, null, this);
                 addAndMeasureChild(view, i);
+                view.setBackground(new BitmapDrawable(getResources(), getRoundedCornerBitmap(view)));
             }
+
+
         }
 
         if (orientation == VERTICAL_ORIENTATION && viewGroupWidth == 0) {
@@ -228,23 +240,54 @@ public class CircularListViewGroup extends AdapterView {
         }
 
         for (int i = 0; i < adapter.getCount(); i++) {
-            final int position = i;
-            final boolean[] longPress = {false};
-            View view = getChildAt(i);
+
             int l, t, r, b;
+            View view = getChildAt(i);
             if (orientation == HORIZONTAL_ORIENTATION) {
-                l = left + offset + position * (view.getMeasuredWidth() + offset);
+                l = left + offset + i * (view.getMeasuredWidth() + offset);
                 t = top + offset;
-                b = t + view.getMeasuredHeight();
-                r = l + view.getMeasuredWidth();
             } else {
                 l = left + offset;
-                t = top + position * (view.getMeasuredHeight() + offset);
-                b = t + view.getMeasuredHeight();
-                r = l + view.getMeasuredWidth();
+                t = top + i * (view.getMeasuredHeight() + offset);
             }
+            b = t + view.getMeasuredHeight();
+            r = l + view.getMeasuredWidth();
             view.layout(l, t, r, b);
         }
+    }
+
+    public Bitmap getRoundedCornerBitmap(View view) {
+
+        Drawable drawable = null;
+        if(view instanceof TextView) {
+            drawable = view.getBackground();
+        }else if(view instanceof ImageView){
+            drawable = ((ImageView)view).getDrawable();
+        }
+        int width = view.getMeasuredWidth(), height = view.getMeasuredHeight();
+        Bitmap foreground = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas1 = new Canvas(foreground);
+        drawable.setBounds(0, 0, width, height);
+        drawable.draw(canvas1);
+
+        Bitmap output = Bitmap.createBitmap(foreground.getWidth() + 6, foreground.getHeight() + 6, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+        Rect imageRect = new Rect(0, 0, foreground.getWidth(), foreground.getHeight());
+        RectF rectF = new RectF(imageRect);
+        canvas.drawARGB(0, 0, 0, 0);
+        final Paint paint = new Paint();
+        paint.setAntiAlias(true);
+
+        canvas.drawRoundRect(rectF, radius, radius, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(foreground, imageRect, imageRect, paint);
+
+        return output;
+    }
+
+    public void setChildAnimation(int animation) {
+        childAnimation = animation;
     }
 
     private void addAndMeasureChild(View child, int index) {
@@ -254,8 +297,11 @@ public class CircularListViewGroup extends AdapterView {
                     LayoutParams.WRAP_CONTENT);
         }
 
-        int childWidth = Math.round(params.width);
-        int childHeight = Math.round(params.height);
+        if (childAnimation != UNDEFINED) {
+            Animation anim = AnimationUtils.loadAnimation(context, childAnimation);
+            child.setAnimation(anim);
+        }
+        int childWidth = Math.round(params.width), childHeight = Math.round(params.height);
 
         if (orientation == HORIZONTAL_ORIENTATION) {
             viewHeight = Math.max(viewHeight, childHeight);
@@ -263,16 +309,10 @@ public class CircularListViewGroup extends AdapterView {
             viewWidth = Math.max(viewWidth, childWidth);
         }
 
-        View view = child;
-        if (radius != 0) {
-            view = new CircularView(context, child, radius, childWidth, childHeight);
-        }
+        addViewInLayout(child, index, params, false);
 
-        addViewInLayout(view, index, params, true);
-
-        view.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
+        child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
-
     }
 
 
@@ -298,7 +338,6 @@ public class CircularListViewGroup extends AdapterView {
                 break;
 
             case MotionEvent.ACTION_MOVE:
-
 
                 float differenceInX = event.getRawX() - lastX;
                 float differenceInY = event.getRawY() - lastY;
@@ -336,7 +375,6 @@ public class CircularListViewGroup extends AdapterView {
                         onItemInteractionListener.onItemClick(selectedViewIndex, selectedView);
                     }
                 }
-
 
                 velocityTracker.computeCurrentVelocity(1000, ViewConfiguration.get(context).getScaledMaximumFlingVelocity());
                 float velocityInX = velocityTracker.getXVelocity();
@@ -424,7 +462,6 @@ public class CircularListViewGroup extends AdapterView {
         private int finalVelocity;
         private float acceleration;
         private float timeSpent;
-        ;
         private float startTime;
         private int difference = 0, prevDistance = 0, direction, orientation;
 
@@ -469,42 +506,9 @@ public class CircularListViewGroup extends AdapterView {
                 }
 
             }
-
             Message bounceMsg = new Message();
             bounceMsg.arg1 = flingDirection;
             bounceViewsHandler.sendMessage(bounceMsg);
-
-        }
-
-    }
-
-    private class CircularView extends View {
-
-        private RectF rect;
-        private int radius;
-        private Paint paint;
-
-        public CircularView(Context context, View view, int radius, int width, int height) {
-            super(context);
-
-            this.radius = radius;
-
-            rect = new RectF(0, 0, width, height);
-            view.setDrawingCacheEnabled(true);
-            view.buildDrawingCache(true);
-            Bitmap image = view.getDrawingCache();
-            view.setDrawingCacheEnabled(false);
-
-            BitmapShader shader = new BitmapShader(image, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
-            paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            paint.setShader(shader);
-        }
-
-        @Override
-        protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas);
-            canvas.drawRoundRect(rect, radius, radius, paint);
         }
     }
-
 }

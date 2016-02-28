@@ -9,6 +9,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.custom.viewgroup.CircularListViewGroup;
+
+import static com.custom.viewgroup.CircularListViewGroup.*;
+
 /**
  * Created by anitham on 29/1/16.
  */
@@ -38,7 +42,6 @@ public class SampleAdapter extends BaseAdapter {
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         TextView textView = new TextView(context);
-        //     textView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         int size = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, context.getResources().getDisplayMetrics());
         textView.setLayoutParams(new ViewGroup.LayoutParams(size, size));
         textView.setBackgroundColor(Color.BLUE);
