@@ -25,7 +25,6 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Adapter;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -243,22 +242,26 @@ public class CircularListViewGroup extends ViewGroup {
         this.makeRoundedChild = makeRoundedChild;
     }
 
-    //    @Override
+    public boolean isScrollingEnabled() {
+        return isScrollingEnabled;
+    }
+
+    public void setIsScrollingEnabled(boolean isScrollingEnabled) {
+        this.isScrollingEnabled = isScrollingEnabled;
+    }
+
     public Adapter getAdapter() {
         return adapter;
     }
 
-    //   @Override
     public void setAdapter(Adapter adapter) {
         this.adapter = adapter;
     }
 
-    //    @Override
     public View getSelectedView() {
         return selectedView;
     }
 
-    //    @Override
     public void setSelection(int i) {
         selectedView = getChildAt(i);
     }
@@ -275,7 +278,6 @@ public class CircularListViewGroup extends ViewGroup {
         childAnimation = animation;
     }
 
-
     public Bitmap getRoundedCornerBitmap(View view) {
 
         Drawable drawable = null;
@@ -285,26 +287,29 @@ public class CircularListViewGroup extends ViewGroup {
             drawable = ((ImageView) view).getDrawable();
         }
 
-        int width = view.getLayoutParams().width, height = view.getLayoutParams().height;
-        Bitmap foreground = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas foregroundCanvas = new Canvas(foreground);
-        drawable.setBounds(0, 0, width, height);
-        drawable.draw(foregroundCanvas);
+        if (drawable != null) {
+            int width = view.getLayoutParams().width, height = view.getLayoutParams().height;
+            Bitmap foreground = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas foregroundCanvas = new Canvas(foreground);
+            drawable.setBounds(0, 0, width, height);
+            drawable.draw(foregroundCanvas);
 
-        Bitmap output = Bitmap.createBitmap(foreground.getWidth(), foreground.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
-        canvas.drawARGB(0, 0, 0, 0);
+            Bitmap output = Bitmap.createBitmap(foreground.getWidth(), foreground.getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(output);
+            canvas.drawARGB(0, 0, 0, 0);
 
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
 
-        Rect rect = new Rect(0, 0, foreground.getWidth(), foreground.getHeight());
-        canvas.drawRoundRect(new RectF(rect), radius, radius, paint);
+            Rect rect = new Rect(0, 0, foreground.getWidth(), foreground.getHeight());
+            canvas.drawRoundRect(new RectF(rect), radius, radius, paint);
 
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(foreground, rect, rect, paint);
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            canvas.drawBitmap(foreground, rect, rect, paint);
 
-        return output;
+            return output;
+        }
+        return null;
     }
 
     @Override
@@ -328,7 +333,10 @@ public class CircularListViewGroup extends ViewGroup {
                     if (makeRoundedChild && isChildSizeVariable) {
                         radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
                     }
-                    view.setBackground(new BitmapDrawable(getResources(), getRoundedCornerBitmap(view)));
+                    Bitmap bitmap = getRoundedCornerBitmap(view);
+                    if (bitmap != null) {
+                        view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                    }
                 }
                 isChildMeasured = true;
             } else {
@@ -342,7 +350,10 @@ public class CircularListViewGroup extends ViewGroup {
                 if (makeRoundedChild && isChildSizeVariable) {
                     radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
                 }
-                view.setBackground(new BitmapDrawable(getResources(), getRoundedCornerBitmap(view)));
+                Bitmap bitmap = getRoundedCornerBitmap(view);
+                if (bitmap != null) {
+                    view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                }
             }
             isChildMeasured = true;
         }
