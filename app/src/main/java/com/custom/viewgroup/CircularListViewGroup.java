@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Adapter;
@@ -33,7 +34,7 @@ import com.custom.R;
 /**
  * Created by anitham on 29/1/16.
  */
-public class CircularListViewGroup extends AdapterView {
+public class CircularListViewGroup extends ViewGroup {
 
     public static final int HORIZONTAL_ORIENTATION = 1;
     public static final int VERTICAL_ORIENTATION = 2;
@@ -45,14 +46,15 @@ public class CircularListViewGroup extends AdapterView {
     private int childWidth = 0;
     private int childHeight = 0;
     private boolean makeRoundedChild = false;
+    private boolean isScrollingEnabled = false;
 
     private Context context;
     private static final String TAG = "CircularViewGroup";
 
-    private boolean isFlingOver = true, isChildSizeVariable = true;
+    private boolean isFlingOver = true, isChildSizeVariable = true, isChildMeasured = false;
     private float lastX = 0, lastY = 0, lastTouchX = 0, lastTouchY = 0, viewGestureOffset = 1 / 10;
     private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, viewTopOffset = 0, viewLeftOffset = 0;
-    private int leftBoundary, rightBoundary, topBoundary, bottomBoundary;
+    private int leftBoundary = UNDEFINED, rightBoundary = UNDEFINED, topBoundary = UNDEFINED, bottomBoundary = UNDEFINED;
     private int childAnimation = UNDEFINED, selectedViewIndex = -1, flingDirection = 1; // -1 is bottom-top / right-left
 
     private Adapter adapter;
@@ -185,13 +187,22 @@ public class CircularListViewGroup extends AdapterView {
             childHeight = ((int) attributes.getDimension(R.styleable.CircularListViewGroup_child_height, UNDEFINED) == UNDEFINED) ? childHeight : (int) attributes.getDimension(R.styleable.CircularListViewGroup_child_height, UNDEFINED);
             childWidth = ((int) attributes.getDimension(R.styleable.CircularListViewGroup_child_width, UNDEFINED) == UNDEFINED) ? childWidth : (int) attributes.getDimension(R.styleable.CircularListViewGroup_child_width, UNDEFINED);
             makeRoundedChild = attributes.getBoolean(R.styleable.CircularListViewGroup_make_rounded_children, false);
+            isScrollingEnabled = attributes.getBoolean(R.styleable.CircularListViewGroup_enable_scrolling, false);
             childAnimation = attributes.getResourceId(R.styleable.CircularListViewGroup_child_animation, UNDEFINED);
 
             attributes.recycle();
 
-            TypedArray arr = context.obtainStyledAttributes(attrs, new int[]{android.R.attr.layout_height, android.R.attr.layout_width});
-            viewGroupHeight = (int) arr.getInt(0, 0);
-            viewGroupWidth = (int) arr.getInt(1, 0); // -2 wrap_content & 0 match_parent
+            TypedArray arr = context.obtainStyledAttributes(attrs, new int[]{android.R.attr.layout_width, android.R.attr.layout_height});
+            try {
+                viewGroupWidth = arr.getInt(0, 0);
+            } catch (NumberFormatException e) {
+                viewGroupWidth = (int) arr.getDimension(0, 0);
+            }
+            try {
+                viewGroupHeight = arr.getInt(1, 0);  // -2 wrap_content & 0 match_parent
+            } catch (NumberFormatException e) {
+                viewGroupHeight = (int) arr.getDimension(1, 0);
+            }
         }
     }
 
@@ -232,22 +243,22 @@ public class CircularListViewGroup extends AdapterView {
         this.makeRoundedChild = makeRoundedChild;
     }
 
-    @Override
+    //    @Override
     public Adapter getAdapter() {
         return adapter;
     }
 
-    @Override
+    //   @Override
     public void setAdapter(Adapter adapter) {
         this.adapter = adapter;
     }
 
-    @Override
+    //    @Override
     public View getSelectedView() {
         return selectedView;
     }
 
-    @Override
+    //    @Override
     public void setSelection(int i) {
         selectedView = getChildAt(i);
     }
@@ -260,52 +271,10 @@ public class CircularListViewGroup extends AdapterView {
         return onItemInteractionListener;
     }
 
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-
-        if (getChildCount() == 0) {
-            leftBoundary = left + childOffset;
-            topBoundary = top + childOffset;
-            rightBoundary = right - childOffset;
-            bottomBoundary = bottom - childOffset;
-
-            if (makeRoundedChild && !isChildSizeVariable) {
-                radius = Math.min(viewWidth, viewHeight) / 2;
-            }
-            for (int position = 0; position < adapter.getCount(); position++) {
-                View view = adapter.getView(position, null, this);
-                addAndMeasureChild(view, position);
-                if (makeRoundedChild && isChildSizeVariable) {
-                    radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
-                }
-                view.setBackground(new BitmapDrawable(getResources(), getRoundedCornerBitmap(view)));
-            }
-        }
-
-        if (orientation == VERTICAL_ORIENTATION && viewGroupWidth <= 0) {
-            setRight(viewWidth + 2 * childOffset);
-        } else if (orientation == HORIZONTAL_ORIENTATION && viewGroupHeight <= 0) {
-            setBottom(viewHeight + 2 * childOffset);
-        }
-
-        viewTopOffset = (viewGroupHeight > 0) ? ((viewGroupHeight - viewHeight) / 2) : childOffset;
-        viewLeftOffset = (viewGroupWidth > 0) ? ((viewGroupWidth - viewWidth) / 2) : childOffset;
-
-        for (int i = 0; i < adapter.getCount(); i++) {
-            int l, t, r, b;
-            View view = getChildAt(i);
-            if (orientation == HORIZONTAL_ORIENTATION) {
-                l = left + childOffset + i * (view.getLayoutParams().width + childOffset);
-                t = top + viewTopOffset;
-            } else {
-                l = left + viewLeftOffset;
-                t = top + i * (view.getLayoutParams().height + childOffset);
-            }
-            b = t + view.getLayoutParams().height;
-            r = l + view.getLayoutParams().width;
-            view.layout(l, t, r, b);
-        }
+    public void setChildAnimation(int animation) {
+        childAnimation = animation;
     }
+
 
     public Bitmap getRoundedCornerBitmap(View view) {
 
@@ -338,11 +307,82 @@ public class CircularListViewGroup extends AdapterView {
         return output;
     }
 
-    public void setChildAnimation(int animation) {
-        childAnimation = animation;
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+
+        if (leftBoundary == UNDEFINED) {
+            leftBoundary = left + childOffset;
+            topBoundary = top + childOffset;
+            rightBoundary = right - childOffset;
+            bottomBoundary = bottom - childOffset;
+            if (makeRoundedChild && !isChildSizeVariable) {
+                radius = Math.min(viewWidth, viewHeight) / 2;
+            }
+        }
+
+        if (getChildCount() == 0) {
+            if (adapter != null) {
+                for (int position = 0; position < adapter.getCount(); position++) {
+                    View view = adapter.getView(position, null, this);
+                    addAndMeasureChild(view, position, true);
+                    if (makeRoundedChild && isChildSizeVariable) {
+                        radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
+                    }
+                    view.setBackground(new BitmapDrawable(getResources(), getRoundedCornerBitmap(view)));
+                }
+                isChildMeasured = true;
+            } else {
+                Log.e(TAG, "Adapter not set.");
+            }
+
+        } else if (!isChildMeasured) {
+            for (int position = 0; position < getChildCount(); position++) {
+                View view = getChildAt(position);
+                addAndMeasureChild(view, position, false);
+                if (makeRoundedChild && isChildSizeVariable) {
+                    radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
+                }
+                view.setBackground(new BitmapDrawable(getResources(), getRoundedCornerBitmap(view)));
+            }
+            isChildMeasured = true;
+        }
+
+        if (viewGroupWidth == LayoutParams.WRAP_CONTENT) {
+            if (orientation == HORIZONTAL_ORIENTATION) {
+                setRight(Math.min(getChildCount() * (viewWidth + childOffset) + childOffset, rightBoundary));
+            } else {
+                setRight(viewWidth + 2 * childOffset);
+            }
+        }
+
+        if (viewGroupHeight == LayoutParams.WRAP_CONTENT) {
+            if (orientation == HORIZONTAL_ORIENTATION) {
+                setBottom(viewHeight + 2 * childOffset);
+            } else {
+                setBottom(Math.min(getChildCount() * (viewHeight + childOffset) + childOffset, bottomBoundary));
+            }
+        }
+
+        viewTopOffset = (viewGroupHeight > 0) ? ((viewGroupHeight - viewHeight) / 2) : childOffset;
+        viewLeftOffset = (viewGroupWidth > 0) ? ((viewGroupWidth - viewWidth) / 2) : childOffset;
+
+        for (int position = 0; position < getChildCount(); position++) {
+            int l, t, r, b;
+            View view = getChildAt(position);
+            if (orientation == HORIZONTAL_ORIENTATION) {
+                l = left + childOffset + position * (view.getLayoutParams().width + childOffset);
+                t = top + viewTopOffset;
+            } else {
+                l = left + viewLeftOffset;
+                t = top + childOffset + position * (view.getLayoutParams().height + childOffset);
+            }
+            b = t + view.getLayoutParams().height;
+            r = l + view.getLayoutParams().width;
+            view.layout(l, t, r, b);
+        }
     }
 
-    private void addAndMeasureChild(View child, int index) {
+    private void addAndMeasureChild(View child, int index, boolean addViewInLayout) {
         LayoutParams params = child.getLayoutParams();
 
         if (isChildSizeVariable) {
@@ -368,7 +408,9 @@ public class CircularListViewGroup extends AdapterView {
             viewWidth = Math.max(viewWidth, params.width);
         }
 
-        addViewInLayout(child, index, params, false);
+        if (addViewInLayout) {
+            addViewInLayout(child, index, params, false);
+        }
         child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.EXACTLY));
     }
@@ -376,7 +418,34 @@ public class CircularListViewGroup extends AdapterView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (isScrollingEnabled) {
+            touchEventForHandlingScrolling(event);
+        } else {
+            touchEventForHandlingClick(event);
+        }
+        return true;
+    }
 
+    private void touchEventForHandlingClick(MotionEvent event) {
+        switch (event.getAction()) {
+
+            case MotionEvent.ACTION_DOWN:
+                lastTouchX = event.getRawX();
+                lastTouchY = event.getRawY();
+                break;
+
+            case MotionEvent.ACTION_UP:
+                if ((lastTouchX - event.getRawX() == 0) && (lastTouchY - event.getRawY() == 0)) {
+                    setCurrentViewBasedOnClick((int) lastTouchX, (int) lastTouchY);
+                    if (selectedView != null) {
+                        onItemInteractionListener.onItemClick(selectedViewIndex, selectedView);
+                    }
+                }
+                break;
+        }
+    }
+
+    private void touchEventForHandlingScrolling(MotionEvent event) {
         if (velocityTracker == null) {
             velocityTracker = VelocityTracker.obtain();
         }
@@ -459,9 +528,8 @@ public class CircularListViewGroup extends AdapterView {
 
                 break;
         }
-
-        return true;
     }
+
 
     private void setCurrentViewBasedOnClick(int x, int y) {
         Rect scrollBounds = new Rect();

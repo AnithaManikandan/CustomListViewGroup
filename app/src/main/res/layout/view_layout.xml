@@ -7,14 +7,37 @@
 
     <com.custom.viewgroup.CircularListViewGroup
         android:id="@+id/viewGroup"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#b9f6ca"
-        app:child_corner_radius="20dp"
         app:child_height="100dp"
         app:child_offset="5dp"
         app:child_width="100dp"
-        app:child_animation="@anim/animation"
-        app:make_rounded_children="true"
-        app:view_orientation="horizontal" />
+        app:view_orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#FF123456"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="#FFFFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#FF123456"
+            android:gravity="center"
+            android:text="2"
+            android:textColor="#FFFFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#FF123456"
+            android:gravity="center"
+            android:text="3"
+            android:textColor="#FFFFFFFF" />
+
+    </com.custom.viewgroup.CircularListViewGroup>
 </LinearLayout>
