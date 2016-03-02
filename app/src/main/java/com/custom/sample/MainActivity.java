@@ -1,13 +1,12 @@
 package com.custom.sample;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import com.anitha.custom.viewgroup.CircularListViewGroup;
 import com.custom.R;
-import com.custom.viewgroup.CircularListViewGroup;
 
 /**
  * Created by anitham on 01-02-2016.

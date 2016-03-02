@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.custom.viewgroup.CircularListViewGroup
+    <com.anitha.custom.viewgroup.CircularListViewGroup
         android:id="@+id/viewGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -39,5 +39,5 @@
             android:text="3"
             android:textColor="#FFFFFFFF" />
 
-    </com.custom.viewgroup.CircularListViewGroup>
+    </com.anitha.custom.viewgroup.CircularListViewGroup>
 </LinearLayout>

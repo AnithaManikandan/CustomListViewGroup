@@ -1,4 +1,4 @@
-package com.custom.viewgroup;
+package com.anitha.custom.viewgroup;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -28,7 +28,6 @@ import android.widget.Adapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.custom.R;
 
 /**
  * Created by anitham on 29/1/16.

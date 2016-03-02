@@ -9,10 +9,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.custom.viewgroup.CircularListViewGroup;
-
-import static com.custom.viewgroup.CircularListViewGroup.*;
-
 /**
  * Created by anitham on 29/1/16.
  */
@@ -50,7 +46,5 @@ public class SampleAdapter extends BaseAdapter {
         textView.setText(Character.toString((char)(i+65)));
         return textView;
     }
-
-
 
 }
