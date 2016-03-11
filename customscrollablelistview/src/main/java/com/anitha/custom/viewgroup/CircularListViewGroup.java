@@ -447,7 +447,7 @@ public class CircularListViewGroup extends ViewGroup {
             case MotionEvent.ACTION_UP:
                 if ((lastTouchX - event.getRawX() == 0) && (lastTouchY - event.getRawY() == 0)) {
                     setCurrentViewBasedOnClick((int) lastTouchX, (int) lastTouchY);
-                    if (selectedView != null) {
+                    if (selectedView != null && onItemInteractionListener != null) {
                         onItemInteractionListener.onItemClick(selectedViewIndex, selectedView);
                     }
                 }
@@ -503,7 +503,7 @@ public class CircularListViewGroup extends ViewGroup {
             case MotionEvent.ACTION_UP:
                 if ((lastTouchX - event.getRawX() == 0) && (lastTouchY - event.getRawY() == 0)) {
                     setCurrentViewBasedOnClick((int) lastTouchX, (int) lastTouchY);
-                    if (selectedView != null) {
+                    if (selectedView != null && onItemInteractionListener != null) {
                         onItemInteractionListener.onItemClick(selectedViewIndex, selectedView);
                     }
                 }
