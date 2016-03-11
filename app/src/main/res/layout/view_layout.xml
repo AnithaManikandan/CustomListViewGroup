@@ -13,32 +13,28 @@
         android:background="#b9f6ca"
         app:child_height="100dp"
         app:child_offset="5dp"
-        app:child_width="100dp"
-        app:view_orientation="vertical"/>
+        app:child_width="100dp" app:child_corner_radius="20dp"
+        app:view_orientation="vertical">
 
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:background="#FF123456"-->
-            <!--android:gravity="center"-->
-            <!--android:text="1"-->
-            <!--android:textColor="#FFFFFFFF" />-->
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/pink" />
 
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:background="#FF123456"-->
-            <!--android:gravity="center"-->
-            <!--android:text="2"-->
-            <!--android:textColor="#FFFFFFFF" />-->
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/grey" />
 
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:background="#FF123456"-->
-            <!--android:gravity="center"-->
-            <!--android:text="3"-->
-            <!--android:textColor="#FFFFFFFF" />-->
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/orange" />
 
-    <!--</com.anitha.custom.viewgroup.CircularListViewGroup>-->
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/blue" />
+
+    </com.anitha.custom.viewgroup.CircularListViewGroup>
 </RelativeLayout>

@@ -326,7 +326,11 @@ public class CircularListViewGroup extends ViewGroup {
                     }
                     Bitmap bitmap = getRoundedCornerBitmap(view);
                     if (bitmap != null) {
-                        view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                        if (view instanceof TextView) {
+                            view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                        } else {
+                            ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+                        }
                     }
                 }
                 isChildMeasured = true;
@@ -343,7 +347,11 @@ public class CircularListViewGroup extends ViewGroup {
                 }
                 Bitmap bitmap = getRoundedCornerBitmap(view);
                 if (bitmap != null) {
-                    view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                    if (view instanceof TextView) {
+                        view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                    } else {
+                        ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+                    }
                 }
             }
             isChildMeasured = true;
