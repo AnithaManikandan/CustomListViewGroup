@@ -254,7 +254,9 @@ public class CircularListViewGroup extends ViewGroup {
     }
 
     public void setAdapter(Adapter adapter) {
+        removeAllViewsInLayout();
         this.adapter = adapter;
+        requestLayout();
     }
 
     public View getSelectedView() {

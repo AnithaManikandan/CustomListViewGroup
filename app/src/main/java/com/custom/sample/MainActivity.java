@@ -11,15 +11,19 @@ import com.custom.R;
 /**
  * Created by anitham on 01-02-2016.
  */
-public class MainActivity extends Activity{
+public class MainActivity extends Activity {
+
+    private CircularListViewGroup circularViewGroup;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_layout);
 
-        CircularListViewGroup circularViewGroup = (CircularListViewGroup) findViewById(R.id.viewGroup);
+        circularViewGroup = (CircularListViewGroup) findViewById(R.id.viewGroup);
         SampleAdapter sampleAdapter = new SampleAdapter(this);
         circularViewGroup.setAdapter(sampleAdapter);
+
         circularViewGroup.setOnItemInteractionListener(new CircularListViewGroup.OnItemInteractionListener() {
 
             @Override
