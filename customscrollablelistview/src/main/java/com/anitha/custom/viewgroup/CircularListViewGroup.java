@@ -312,18 +312,8 @@ public class CircularListViewGroup extends ViewGroup {
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-
-        if (leftBoundary == UNDEFINED) {
-            leftBoundary = left + childOffset;
-            topBoundary = top + childOffset;
-            rightBoundary = right - childOffset;
-            bottomBoundary = bottom - childOffset;
-            if (makeRoundedChild && !isChildSizeVariable) {
-                radius = Math.min(viewWidth, viewHeight) / 2;
-            }
-        }
-
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         if (getChildCount() == 0) {
             if (adapter != null) {
                 for (int position = 0; position < adapter.getCount(); position++) {
@@ -359,32 +349,57 @@ public class CircularListViewGroup extends ViewGroup {
 
         if (viewGroupWidth == LayoutParams.WRAP_CONTENT) {
             if (orientation == HORIZONTAL_ORIENTATION) {
-                setRight(Math.min(getChildCount() * (viewWidth + childOffset) + childOffset, rightBoundary));
+                setRight(getLeft() + getChildCount() * (viewWidth + childOffset) + childOffset);
             } else {
-                setRight(viewWidth + 2 * childOffset);
+                setRight(getLeft() + viewWidth + 2 * childOffset);
             }
+        } else if (viewGroupWidth == LayoutParams.MATCH_PARENT) {
+            setRight(getMeasuredWidth());
+        } else {
+            setRight(getLeft() + viewGroupWidth);
         }
 
         if (viewGroupHeight == LayoutParams.WRAP_CONTENT) {
             if (orientation == HORIZONTAL_ORIENTATION) {
-                setBottom(viewHeight + 2 * childOffset);
+                setBottom(getTop() + viewHeight + 2 * childOffset);
             } else {
-                setBottom(Math.min(getChildCount() * (viewHeight + childOffset) + childOffset, bottomBoundary));
+                setBottom(getTop() + getChildCount() * (viewHeight + childOffset) + childOffset);
+            }
+        } else if (viewGroupHeight == LayoutParams.MATCH_PARENT) {
+            setBottom(getMeasuredHeight());
+        } else {
+            setBottom(getTop() + viewGroupHeight);
+        }
+
+        if (leftBoundary == UNDEFINED) {
+            leftBoundary = getLeft() + childOffset;
+            topBoundary = getTop() + childOffset;
+            rightBoundary = getRight() - childOffset;
+            bottomBoundary = getBottom() - childOffset;
+            if (makeRoundedChild && !isChildSizeVariable) {
+                radius = Math.min(viewWidth, viewHeight) / 2;
             }
         }
+
+        setMeasuredDimension(getRight() - getLeft(), getBottom() - getTop());
+        Log.d(TAG, "OnMeasure");
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 
         viewTopOffset = (viewGroupHeight > 0) ? ((viewGroupHeight - viewHeight) / 2) : childOffset;
         viewLeftOffset = (viewGroupWidth > 0) ? ((viewGroupWidth - viewWidth) / 2) : childOffset;
 
-        for (int position = 0; position < getChildCount(); position++) {
+        for (int position = 0; position < getChildCount(); position++) { //positions are relative to parent
             int l, t, r, b;
             View view = getChildAt(position);
             if (orientation == HORIZONTAL_ORIENTATION) {
-                l = left + childOffset + position * (view.getLayoutParams().width + childOffset);
-                t = top + viewTopOffset;
+                l = childOffset + position * (view.getLayoutParams().width + childOffset);
+                t = viewTopOffset;
             } else {
-                l = left + viewLeftOffset;
-                t = top + childOffset + position * (view.getLayoutParams().height + childOffset);
+                l = viewLeftOffset;
+                t = childOffset + position * (view.getLayoutParams().height + childOffset);
             }
             b = t + view.getLayoutParams().height;
             r = l + view.getLayoutParams().width;

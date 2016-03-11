@@ -17,16 +17,15 @@ public class MainActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.view_layout);
 
-        CircularListViewGroup circularViewGroup= (CircularListViewGroup) findViewById(R.id.viewGroup);
+        CircularListViewGroup circularViewGroup = (CircularListViewGroup) findViewById(R.id.viewGroup);
         SampleAdapter sampleAdapter = new SampleAdapter(this);
         circularViewGroup.setAdapter(sampleAdapter);
         circularViewGroup.setOnItemInteractionListener(new CircularListViewGroup.OnItemInteractionListener() {
 
             @Override
             public void onItemClick(int position, View view) {
-                Toast.makeText(MainActivity.this, position+" is clicked",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, position + " is clicked", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 }
