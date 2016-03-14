@@ -7,7 +7,11 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.custom.R;
 
 /**
  * Created by anitham on 29/1/16.
@@ -37,14 +41,20 @@ public class SampleAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        TextView textView = new TextView(context);
-        int size = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, context.getResources().getDisplayMetrics());
-        textView.setLayoutParams(new ViewGroup.LayoutParams(size, size));
-        textView.setBackgroundColor(Color.BLUE);
-        textView.setTextColor(Color.WHITE);
-        textView.setGravity(Gravity.CENTER);
-        textView.setText(Character.toString((char)(i+65)));
-        return textView;
+//        TextView textView = new TextView(context);
+//        int size = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, context.getResources().getDisplayMetrics());
+//        textView.setLayoutParams(new ViewGroup.LayoutParams(size, size));
+//        textView.setBackgroundColor(Color.BLUE);
+//        textView.setTextColor(Color.WHITE);
+//        textView.setGravity(Gravity.CENTER);
+//        textView.setText(Character.toString((char)(i+65)));
+//        return textView;
+        ImageView imageView = new ImageView(context);
+        int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 140, context.getResources().getDisplayMetrics());
+        imageView.setLayoutParams(new ViewGroup.LayoutParams(size, size));
+        imageView.setBackground(context.getResources().getDrawable(R.drawable.blue));
+        imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.pink));
+        return imageView;
     }
 
 }

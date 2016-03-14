@@ -334,7 +334,7 @@ public class CircularListViewGroup extends ViewGroup {
                     }
                     Bitmap bitmap = getRoundedCornerBitmap(view);
                     if (bitmap != null) {
-                        view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                        setBackgroundToView(view, new BitmapDrawable(getResources(), bitmap));
                         if (view instanceof ImageView) {
                             ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
                         }
@@ -354,7 +354,7 @@ public class CircularListViewGroup extends ViewGroup {
                 }
                 Bitmap bitmap = getRoundedCornerBitmap(view);
                 if (bitmap != null) {
-                    view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                    setBackgroundToView(view, new BitmapDrawable(getResources(), bitmap));
                     if (view instanceof ImageView) {
                         ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
                     }
@@ -671,6 +671,14 @@ public class CircularListViewGroup extends ViewGroup {
             Message bounceMsg = new Message();
             bounceMsg.arg1 = flingDirection;
             bounceViewsHandler.sendMessage(bounceMsg);
+        }
+    }
+
+    private void setBackgroundToView(View view, Drawable drawable) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            view.setBackgroundDrawable(drawable);
+        } else {
+            view.setBackground(drawable);
         }
     }
 }

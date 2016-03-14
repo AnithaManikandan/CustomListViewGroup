@@ -21,8 +21,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.view_layout);
 
         circularViewGroup = (CircularListViewGroup) findViewById(R.id.viewGroup);
-//        SampleAdapter sampleAdapter = new SampleAdapter(this);
-//        circularViewGroup.setAdapter(sampleAdapter);
+        SampleAdapter sampleAdapter = new SampleAdapter(this);
+        circularViewGroup.setAdapter(sampleAdapter);
 
         circularViewGroup.setOnItemInteractionListener(new CircularListViewGroup.OnItemInteractionListener() {
 
