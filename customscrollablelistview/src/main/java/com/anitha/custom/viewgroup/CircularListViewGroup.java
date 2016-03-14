@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -257,6 +258,7 @@ public class CircularListViewGroup extends ViewGroup {
         removeAllViewsInLayout();
         this.adapter = adapter;
         requestLayout();
+        invalidate();
     }
 
     public View getSelectedView() {
@@ -314,6 +316,12 @@ public class CircularListViewGroup extends ViewGroup {
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        super.onInterceptTouchEvent(ev);
+        return true;
+    }
+
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         if (getChildCount() == 0) {
@@ -326,9 +334,8 @@ public class CircularListViewGroup extends ViewGroup {
                     }
                     Bitmap bitmap = getRoundedCornerBitmap(view);
                     if (bitmap != null) {
-                        if (view instanceof TextView) {
-                            view.setBackground(new BitmapDrawable(getResources(), bitmap));
-                        } else {
+                        view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                        if (view instanceof ImageView) {
                             ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
                         }
                     }
@@ -347,9 +354,8 @@ public class CircularListViewGroup extends ViewGroup {
                 }
                 Bitmap bitmap = getRoundedCornerBitmap(view);
                 if (bitmap != null) {
-                    if (view instanceof TextView) {
-                        view.setBackground(new BitmapDrawable(getResources(), bitmap));
-                    } else {
+                    view.setBackground(new BitmapDrawable(getResources(), bitmap));
+                    if (view instanceof ImageView) {
                         ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
                     }
                 }
