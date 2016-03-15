@@ -281,15 +281,11 @@ public class CircularListViewGroup extends ViewGroup {
         childAnimation = animation;
     }
 
-    public Bitmap getRoundedCornerBitmap(View view) {
-
-        Drawable drawable = null;
-        if (view instanceof TextView) {
-            drawable = view.getBackground();
-        } else if (view instanceof ImageView) {
+    public Bitmap getRoundedCornerBitmap(View view, boolean isItImageSrc) {
+        Drawable drawable = view.getBackground();
+        if (isItImageSrc) {
             drawable = ((ImageView) view).getDrawable();
         }
-
         if (drawable != null) {
             int width = view.getLayoutParams().width, height = view.getLayoutParams().height;
             Bitmap foreground = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -312,6 +308,7 @@ public class CircularListViewGroup extends ViewGroup {
 
             return output;
         }
+
         return null;
     }
 
@@ -332,12 +329,14 @@ public class CircularListViewGroup extends ViewGroup {
                     if (makeRoundedChild && isChildSizeVariable) {
                         radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
                     }
-                    Bitmap bitmap = getRoundedCornerBitmap(view);
+                    Bitmap bitmap = getRoundedCornerBitmap(view, false);
                     if (bitmap != null) {
-                        if (view instanceof TextView) {
-                            setBackgroundToView(view, new BitmapDrawable(getResources(), bitmap));
-                        } else if (view instanceof ImageView) {
-                            ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+                        setBackgroundToView(view, new BitmapDrawable(getResources(), bitmap));
+                    }
+                    if (view instanceof ImageView) {
+                        Bitmap bitmapSrc = getRoundedCornerBitmap(view, true);
+                        if (bitmapSrc != null) {
+                            ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmapSrc));
                         }
                     }
                 }
@@ -353,12 +352,14 @@ public class CircularListViewGroup extends ViewGroup {
                 if (makeRoundedChild && isChildSizeVariable) {
                     radius = Math.min(view.getLayoutParams().height, view.getLayoutParams().width) / 2;
                 }
-                Bitmap bitmap = getRoundedCornerBitmap(view);
+                Bitmap bitmap = getRoundedCornerBitmap(view, false);
                 if (bitmap != null) {
-                    if (view instanceof TextView) {
-                        setBackgroundToView(view, new BitmapDrawable(getResources(), bitmap));
-                    } else if (view instanceof ImageView) {
-                        ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmap));
+                    setBackgroundToView(view, new BitmapDrawable(getResources(), bitmap));
+                }
+                if (view instanceof ImageView) {
+                    Bitmap bitmapSrc = getRoundedCornerBitmap(view, true);
+                    if (bitmapSrc != null) {
+                        ((ImageView) view).setImageDrawable(new BitmapDrawable(getResources(), bitmapSrc));
                     }
                 }
             }
