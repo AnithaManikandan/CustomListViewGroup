@@ -325,7 +325,7 @@ public class CircularListViewGroup extends ViewGroup {
             }
         }
 
-        if (rightBoundary < screenWidth) {
+        if ((orientation == HORIZONTAL_ORIENTATION && rightBoundary < screenWidth) || (orientation == VERTICAL_ORIENTATION && bottomBoundary < screenHeight)) {
             setIsScrollingEnabled(false);
         }
         setMeasuredDimension(getRight() - getLeft(), getBottom() - getTop());
@@ -484,6 +484,9 @@ public class CircularListViewGroup extends ViewGroup {
 
 
     private void moveChildrenWithDistance(float differenceInX, float differenceInY) {
+
+        // TODO: 20-03-2016 wrt gravity
+
         if (orientation == HORIZONTAL_ORIENTATION) {
             if ((getScrollX() + differenceInX) >= 0) {
                 int rightEndPoint = ((getChildCount() * (viewWidth + childOffset) + childOffset) - Math.min(screenWidth, rightBoundary));
@@ -496,8 +499,16 @@ public class CircularListViewGroup extends ViewGroup {
                 scrollTo(0, 0);
             }
         } else {
-//            Log.d(TAG, "Scroll boundaries " + (getScrollX() + differenceInX) + " " + rightEndPoint);
-            scrollBy(0, (int) differenceInY);
+            if (getScrollY() + differenceInY <= 0) {
+                int bottomEndPoint = getTop();
+                if (getScrollY() + differenceInY >= getTop()) {
+                    scrollBy(0, (int) differenceInY);
+                } else {
+                    scrollTo(0, bottomEndPoint); //beyond the top boundary, so setting the view to (0, bottomBoundary);
+                }
+            } else {
+                scrollTo(0, 0); ///beyond bottom boundary, so setting the view to (0,0)
+            }
         }
     }
 
