@@ -1,5 +1,6 @@
 package com.anitha.custom.viewgroup;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -16,13 +17,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Adapter;
@@ -52,7 +56,7 @@ public class CircularListViewGroup extends ViewGroup {
 
     private boolean isFlingOver = true, isChildSizeVariable = true, isChildMeasured = false;
     private float lastX = 0, lastY = 0, lastTouchX = 0, lastTouchY = 0, viewGestureOffset = 1 / 10;
-    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, viewTopOffset = 0, viewLeftOffset = 0;
+    private int viewHeight = 0, viewWidth = 0, viewGroupHeight = 0, viewGroupWidth = 0, viewTopOffset = 0, viewLeftOffset = 0, screenWidth = 0, screenHeight = 0;
     private int leftBoundary = UNDEFINED, rightBoundary = UNDEFINED, topBoundary = UNDEFINED, bottomBoundary = UNDEFINED;
     private int childAnimation = UNDEFINED, selectedViewIndex = -1, flingDirection = 1; // -1 is bottom-top / right-left
 
@@ -65,93 +69,10 @@ public class CircularListViewGroup extends ViewGroup {
         @Override
         public boolean handleMessage(Message msg) {
             int distance = msg.arg1;
-            Log.d(TAG, distance + " distance in fling.");
-            if (orientation == HORIZONTAL_ORIENTATION) {
-
-                for (int childCount = 0; childCount < getChildCount(); childCount++) {
-                    View child = getChildAt(childCount);
-
-                    // controls fling gap
-                    if (childCount == 0) {
-                        if (child.getLeft() > (viewGestureOffset * rightBoundary)) {
-                            isFlingOver = true;
-                            break;
-                        } else if ((getChildAt(getChildCount() - 1).getLeft() + distance
-                                + getChildAt(getChildCount() - 1).getWidth()) < ((1 - viewGestureOffset) * rightBoundary)) {
-                            isFlingOver = true;
-                            break;
-                        }
-                    }
-
-                    child.layout(child.getLeft() + distance,
-                            child.getTop(), child.getLeft() + distance
-                                    + child.getWidth(),
-                            child.getTop() + child.getHeight());
-
-                }
-            } else {
-                for (int childCount = 0; childCount < getChildCount(); childCount++) {
-                    View child = getChildAt(childCount);
-                    child.layout(child.getLeft(), child.getTop()
-                                    + distance,
-                            child.getLeft() + child.getWidth(), child.getTop()
-                                    + distance + child.getHeight());
-                }
-            }
-            invalidate();
+            moveChildrenWithDistance(distance, distance);
             return true;
         }
     });
-
-    private Handler bounceViewsHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message message) {
-            int direction = message.arg1;
-            int distance = 0;
-            if (orientation == HORIZONTAL_ORIENTATION) {
-                if (direction == -1) {
-                    if (getChildAt(getChildCount() - 1).getRight() < rightBoundary + childOffset) { //right to left
-                        distance = rightBoundary
-                                - getChildAt(getChildCount() - 1).getWidth()
-                                - getChildAt(getChildCount() - 1).getLeft();
-                    }
-                } else if (getChildAt(0).getLeft() > leftBoundary) { //left to right
-                    distance = leftBoundary - getChildAt(0).getLeft();
-                }
-                if (distance != 0) {
-                    for (int childCount = 0; childCount < getChildCount(); childCount++) {
-                        View child = getChildAt(childCount);
-                        child.layout(child.getLeft() + distance, child.getTop(),
-                                child.getLeft() + distance + child.getWidth(),
-                                child.getTop() + child.getHeight());
-                    }
-                }
-            } else {
-
-                if (direction == -1) {
-                    if (getChildAt(getChildCount() - 1).getBottom() < bottomBoundary)
-                        distance = bottomBoundary
-                                - getChildAt(getChildCount() - 1).getHeight()
-                                - getChildAt(getChildCount() - 1).getTop();
-
-                } else {
-                    if (getChildAt(0).getTop() > topBoundary)
-                        distance = topBoundary - getChildAt(0).getTop();
-                }
-
-                for (int childCount = 0; childCount < getChildCount(); childCount++) {
-                    View child = getChildAt(childCount);
-                    child.layout(child.getLeft(), child.getTop() + distance,
-                            child.getLeft() + child.getWidth(), child.getTop()
-                                    + distance + child.getHeight());
-                }
-
-            }
-            invalidate();
-            return true;
-        }
-    });
-
 
     public CircularListViewGroup(Context context) {
         this(context, null, 0);
@@ -164,6 +85,7 @@ public class CircularListViewGroup extends ViewGroup {
     public CircularListViewGroup(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
+
         initialiseAttributes(attrs, defStyleAttr);
 
         if (childWidth > 0 && childHeight > 0) {
@@ -171,7 +93,10 @@ public class CircularListViewGroup extends ViewGroup {
             viewHeight = childHeight;
             isChildSizeVariable = false;
         }
-
+        DisplayMetrics metrics = new DisplayMetrics();
+        ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getMetrics(metrics);
+        screenWidth = metrics.widthPixels;
+        screenHeight = metrics.heightPixels;
     }
 
 
@@ -400,8 +325,10 @@ public class CircularListViewGroup extends ViewGroup {
             }
         }
 
+        if (rightBoundary < screenWidth) {
+            setIsScrollingEnabled(false);
+        }
         setMeasuredDimension(getRight() - getLeft(), getBottom() - getTop());
-        Log.d(TAG, "OnMeasure");
     }
 
     @Override
@@ -510,25 +437,10 @@ public class CircularListViewGroup extends ViewGroup {
 
             case MotionEvent.ACTION_MOVE:
 
-                float differenceInX = event.getRawX() - lastX;
-                float differenceInY = event.getRawY() - lastY;
-                int top, right, bottom, left;
+                float differenceInX = lastX - event.getRawX();
+                float differenceInY = lastY - event.getRawY();
 
-                for (int childCount = 0; childCount < getChildCount(); childCount++) {
-                    View child = getChildAt(childCount);
-                    if (orientation == HORIZONTAL_ORIENTATION) {
-                        left = child.getLeft() + (int) differenceInX;
-                        top = child.getTop();
-                    } else {
-                        left = child.getLeft();
-                        top = child.getTop() + (int) differenceInY;
-                    }
-                    right = left + child.getWidth();
-                    bottom = top + child.getHeight();
-                    child.layout(left, top, right, bottom);
-                }
-
-                invalidate();
+                moveChildrenWithDistance(differenceInX, differenceInY);
 
                 lastX = event.getRawX();
                 lastY = event.getRawY();
@@ -561,10 +473,6 @@ public class CircularListViewGroup extends ViewGroup {
                 if (velocity > (ViewConfiguration.get(context).getScaledMinimumFlingVelocity() * 2)) {
                     new Thread(new FlingThread((int) velocity, acceleration, flingDirection)).start();
                     isFlingOver = false;
-                } else if (isFlingOver) {
-                    Message bounceMsg = new Message();
-                    bounceMsg.arg1 = flingDirection;
-                    bounceViewsHandler.sendMessage(bounceMsg);
                 }
 
                 velocityTracker.recycle();
@@ -574,6 +482,24 @@ public class CircularListViewGroup extends ViewGroup {
         }
     }
 
+
+    private void moveChildrenWithDistance(float differenceInX, float differenceInY) {
+        if (orientation == HORIZONTAL_ORIENTATION) {
+            if ((getScrollX() + differenceInX) >= 0) {
+                int rightEndPoint = ((getChildCount() * (viewWidth + childOffset) + childOffset) - Math.min(screenWidth, rightBoundary));
+                if (getScrollX() + differenceInX <= rightEndPoint) {
+                    scrollBy((int) differenceInX, 0);
+                } else {
+                    scrollTo(rightEndPoint, 0); //beyond the right boundary, so setting the view to (rightBoundary,0);
+                }
+            } else { //beyond left boundary, so setting the view to (0,0)
+                scrollTo(0, 0);
+            }
+        } else {
+//            Log.d(TAG, "Scroll boundaries " + (getScrollX() + differenceInX) + " " + rightEndPoint);
+            scrollBy(0, (int) differenceInY);
+        }
+    }
 
     private void setCurrentViewBasedOnClick(int x, int y) {
         Rect scrollBounds = new Rect();
@@ -655,7 +581,7 @@ public class CircularListViewGroup extends ViewGroup {
                     int distance = (int) ((initialVelocity * timeSpent) - (0.5f
                             * acceleration * timeSpent * timeSpent)); // s = vt - 0.5at square ()
 
-                    difference = distance - prevDistance;
+                    difference = prevDistance - distance;
 
                     if (difference != 0) {
                         Message msg = new Message();
@@ -671,9 +597,6 @@ public class CircularListViewGroup extends ViewGroup {
                 }
 
             }
-            Message bounceMsg = new Message();
-            bounceMsg.arg1 = flingDirection;
-            bounceViewsHandler.sendMessage(bounceMsg);
         }
     }
 
