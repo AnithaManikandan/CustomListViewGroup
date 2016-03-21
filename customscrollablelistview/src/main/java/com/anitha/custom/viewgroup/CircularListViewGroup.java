@@ -314,8 +314,8 @@ public class CircularListViewGroup extends ViewGroup {
         if (leftBoundary == UNDEFINED) {
             leftBoundary = getLeft() + childOffset;
             topBoundary = getTop() + childOffset;
-            rightBoundary = getRight() - childOffset;
-            bottomBoundary = getBottom() - childOffset;
+            rightBoundary = getRight();
+            bottomBoundary = getBottom();
             if (makeRoundedChild && !isChildSizeVariable) {
                 radius = Math.min(viewWidth, viewHeight) / 2;
             }
