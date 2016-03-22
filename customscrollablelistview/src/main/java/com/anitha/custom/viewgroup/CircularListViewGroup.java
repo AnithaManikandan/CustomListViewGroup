@@ -296,7 +296,7 @@ public class CircularListViewGroup extends ViewGroup {
                 setRight(getLeft() + viewWidth + 2 * childOffset);
             }
         } else if (viewGroupWidth == LayoutParams.MATCH_PARENT) {
-            setRight(getMeasuredWidth());
+            setRight(screenWidth);
         } else {
             setRight(getLeft() + viewGroupWidth);
         }
@@ -308,7 +308,7 @@ public class CircularListViewGroup extends ViewGroup {
                 setBottom(getTop() + getChildCount() * (viewHeight + childOffset) + childOffset);
             }
         } else if (viewGroupHeight == LayoutParams.MATCH_PARENT) {
-            setBottom(getMeasuredHeight());
+            setBottom(screenHeight);
         } else {
             setBottom(getTop() + viewGroupHeight);
         }
@@ -323,7 +323,7 @@ public class CircularListViewGroup extends ViewGroup {
             }
         }
 
-        if ((orientation == HORIZONTAL_ORIENTATION && rightBoundary < screenWidth) || (orientation == VERTICAL_ORIENTATION && bottomBoundary < screenHeight)) {
+        if ((orientation == HORIZONTAL_ORIENTATION && rightBoundary <= screenWidth && rightBoundary >= (getChildCount() * (viewWidth + childOffset) + childOffset)) || (orientation == VERTICAL_ORIENTATION && bottomBoundary <= screenHeight) && bottomBoundary >= (getChildCount() * (viewHeight + childOffset) + childOffset)) {
             setIsScrollingEnabled(false);
         } else {
             setIsScrollingEnabled(true);
