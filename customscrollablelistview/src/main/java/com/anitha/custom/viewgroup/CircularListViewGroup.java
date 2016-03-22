@@ -176,6 +176,8 @@ public class CircularListViewGroup extends ViewGroup {
     }
 
     public void setAdapter(Adapter adapter) {
+        scrollTo(0, 0);
+        leftBoundary = topBoundary = rightBoundary = bottomBoundary = UNDEFINED;
         removeAllViewsInLayout();
         this.adapter = adapter;
         requestLayout();
@@ -323,6 +325,8 @@ public class CircularListViewGroup extends ViewGroup {
 
         if ((orientation == HORIZONTAL_ORIENTATION && rightBoundary < screenWidth) || (orientation == VERTICAL_ORIENTATION && bottomBoundary < screenHeight)) {
             setIsScrollingEnabled(false);
+        } else {
+            setIsScrollingEnabled(true);
         }
         setMeasuredDimension(getRight() - getLeft(), getBottom() - getTop());
     }
