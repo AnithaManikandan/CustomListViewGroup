@@ -323,7 +323,7 @@ public class CircularListViewGroup extends ViewGroup {
             }
         }
 
-        if ((orientation == HORIZONTAL_ORIENTATION && rightBoundary <= screenWidth && rightBoundary >= (getChildCount() * (viewWidth + childOffset) + childOffset)) || (orientation == VERTICAL_ORIENTATION && bottomBoundary <= screenHeight) && bottomBoundary >= (getChildCount() * (viewHeight + childOffset) + childOffset)) {
+        if ((orientation == HORIZONTAL_ORIENTATION && rightBoundary <= screenWidth && rightBoundary >= (getChildCount() * (viewWidth + childOffset) + childOffset)) || orientation == VERTICAL_ORIENTATION && bottomBoundary <= screenHeight && bottomBoundary >= (getChildCount() * (viewHeight + childOffset) + childOffset + getTop())) {
             setIsScrollingEnabled(false);
         } else {
             setIsScrollingEnabled(true);
@@ -499,9 +499,10 @@ public class CircularListViewGroup extends ViewGroup {
                 scrollTo(0, 0);
             }
         } else {
-            if (getScrollY() + differenceInY <= 0) {
-                int bottomEndPoint = getTop();
-                if (getScrollY() + differenceInY >= getTop()) {
+            int yScroll = getScrollY() + getTop();
+            if (yScroll + differenceInY >= 0) { // <=0
+                int bottomEndPoint = ((getChildCount() * (viewHeight + childOffset) + childOffset) + 5 * childOffset - Math.min(screenHeight, bottomBoundary));
+                if (yScroll + differenceInY <= bottomEndPoint) { //>=bottom
                     scrollBy(0, (int) differenceInY);
                 } else {
                     scrollTo(0, bottomEndPoint); //beyond the top boundary, so setting the view to (0, bottomBoundary);
