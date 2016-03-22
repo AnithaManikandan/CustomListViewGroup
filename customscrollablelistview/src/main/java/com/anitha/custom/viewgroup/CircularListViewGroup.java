@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
@@ -23,7 +22,6 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Adapter;
@@ -89,10 +87,6 @@ public class CircularListViewGroup extends ViewGroup {
             viewHeight = childHeight;
             isChildSizeVariable = false;
         }
-        DisplayMetrics metrics = new DisplayMetrics();
-        ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getMetrics(metrics);
-        screenWidth = metrics.widthPixels;
-        screenHeight = metrics.heightPixels;
     }
 
 
@@ -289,6 +283,8 @@ public class CircularListViewGroup extends ViewGroup {
             isChildMeasured = true;
         }
 
+        screenWidth = getLeft() + getMeasuredWidth();
+        screenHeight = getTop() + getMeasuredHeight();
         if (viewGroupWidth == LayoutParams.WRAP_CONTENT) {
             if (orientation == HORIZONTAL_ORIENTATION) {
                 setRight(getLeft() + getChildCount() * (viewWidth + childOffset) + childOffset);
@@ -296,7 +292,7 @@ public class CircularListViewGroup extends ViewGroup {
                 setRight(getLeft() + viewWidth + 2 * childOffset);
             }
         } else if (viewGroupWidth == LayoutParams.MATCH_PARENT) {
-            setRight(screenWidth);
+            setRight(getLeft() + getMeasuredWidth());
         } else {
             setRight(getLeft() + viewGroupWidth);
         }
@@ -308,7 +304,7 @@ public class CircularListViewGroup extends ViewGroup {
                 setBottom(getTop() + getChildCount() * (viewHeight + childOffset) + childOffset);
             }
         } else if (viewGroupHeight == LayoutParams.MATCH_PARENT) {
-            setBottom(screenHeight);
+            setBottom(getTop() + getMeasuredHeight());
         } else {
             setBottom(getTop() + viewGroupHeight);
         }
@@ -468,7 +464,6 @@ public class CircularListViewGroup extends ViewGroup {
                     flingDirection = (velocityInY > 0) ? 1 : -1;
                     velocity = Math.abs(velocityInY);
                 }
-                Log.d(TAG, velocity + " velocity of this fling.");
 
                 if (velocity > (ViewConfiguration.get(context).getScaledMinimumFlingVelocity() * 2)) {
                     new Thread(new FlingThread((int) velocity, acceleration, flingDirection)).start();
@@ -499,10 +494,10 @@ public class CircularListViewGroup extends ViewGroup {
                 scrollTo(0, 0);
             }
         } else {
-            int yScroll = getScrollY() + getTop();
-            if (yScroll + differenceInY >= 0) { // <=0
-                int bottomEndPoint = ((getChildCount() * (viewHeight + childOffset) + childOffset) + 5 * childOffset - Math.min(screenHeight, bottomBoundary));
-                if (yScroll + differenceInY <= bottomEndPoint) { //>=bottom
+            int yScroll = getScrollY();
+            if (yScroll + differenceInY >= 0) {
+                int bottomEndPoint = ((getChildCount() * (viewHeight + childOffset) + childOffset) + getTop() - Math.min(screenHeight, bottomBoundary));
+                if (yScroll + differenceInY <= bottomEndPoint) {
                     scrollBy(0, (int) differenceInY);
                 } else {
                     scrollTo(0, bottomEndPoint); //beyond the top boundary, so setting the view to (0, bottomBoundary);
